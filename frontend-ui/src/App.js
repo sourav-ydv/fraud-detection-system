@@ -159,15 +159,16 @@ export default function App() {
     else { setAmount("85000"); setTime("2"); setTxns("25"); setIntl(true); }
     setResult(null); setExpls([]); setRuleExpls([]);
   };
-
+  
+  const API_URL = "https://fraud-backend-wsgp.onrender.com";
   const analyze = async () => {
     if (!amount || !time || !txns) return;
     setLoading(true);
     try {
       const body = { amount: +amount, time: +time, transactions_last_hour: +txns, is_international: intl };
       const [pr, er] = await Promise.all([
-        fetch("http://127.0.0.1:8000/predict", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
-        fetch("http://127.0.0.1:8000/explain",  { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
+        fetch(`${API_URL}/predict`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
+        fetch(`${API_URL}/explain`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
       ]);
       const pd = await pr.json(), ed = await er.json();
       setResult(pd);
