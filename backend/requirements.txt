@@ -16,6 +16,6 @@ xgboost==2.0.3
 joblib==1.4.0
 shap==0.51.0
 numpy==2.4.6
-pandas==2.2.2
+pandas==2.3.0
 
 pydantic[email]==2.7.1
