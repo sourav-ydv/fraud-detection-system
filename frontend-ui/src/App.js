@@ -10,17 +10,52 @@ const FontLoader = () => {
   useEffect(() => {
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@600;700;800&display=swap";
+    link.href = "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,900&family=IBM+Plex+Mono:wght@400;500;600&display=swap";
     document.head.appendChild(link);
   }, []);
   return null;
 };
 
+const GlobalStyle = () => (
+  <style>{`
+    :root{
+      --paper:#EAE2CE;
+      --paper2:#F6F1E3;
+      --paper3:#DED2B0;
+      --ink:#23201A;
+      --ink-soft:#6E6452;
+      --ink-faint:#A2967D;
+      --rule:#C9B98E;
+      --green:#33522F;
+      --green-bg:#E9EEDF;
+      --amber:#86591A;
+      --amber-bg:#F3E9D2;
+      --orange:#9C4A1C;
+      --orange-bg:#F1E0CC;
+      --red:#8A2424;
+      --red-bg:#F1DDD6;
+      --serif:"Fraunces",serif;
+      --mono:"IBM Plex Mono",monospace;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background-color:var(--paper);
+      background-image:
+        radial-gradient(circle at 1px 1px, rgba(35,32,26,0.05) 1px, transparent 0);
+      background-size:4px 4px;
+    }
+    input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    @keyframes stampIn{0%{opacity:0;transform:scale(1.5) rotate(-14deg)}60%{opacity:1}100%{opacity:1;transform:scale(1) rotate(-4deg)}}
+  `}</style>
+);
+
 const RISK = {
-  LOW:      { label: "Low Risk",      symbol: "●", hex: "#22c55e", bg: "#052010" },
-  MEDIUM:   { label: "Medium Risk",   symbol: "▲", hex: "#f59e0b", bg: "#1c1000" },
-  HIGH:     { label: "High Risk",     symbol: "◆", hex: "#f97316", bg: "#1c0800" },
-  CRITICAL: { label: "Critical Risk", symbol: "■", hex: "#ef4444", bg: "#1a0000" },
+  LOW:      { label: "Cleared",      verdict: "CLEARED",  symbol: "✓", ink: "var(--green)",  bg: "var(--green-bg)"  },
+  MEDIUM:   { label: "Needs Review", verdict: "REVIEW",   symbol: "△", ink: "var(--amber)",  bg: "var(--amber-bg)"  },
+  HIGH:     { label: "Flagged",      verdict: "FLAGGED",  symbol: "◇", ink: "var(--orange)", bg: "var(--orange-bg)" },
+  CRITICAL: { label: "Blocked",      verdict: "BLOCKED",  symbol: "✕", ink: "var(--red)",    bg: "var(--red-bg)"    },
 };
 
 function getTier(p) {
@@ -50,20 +85,22 @@ function AnimatedPct({ value }) {
 function Gauge({ probability }) {
   const pct = Math.min(probability * 100, 100);
   const tier = getTier(probability);
-  const { hex } = RISK[tier];
+  const { ink } = RISK[tier];
   const [w, setW] = useState(0);
   useEffect(() => { const t = setTimeout(() => setW(pct), 80); return () => clearTimeout(t); }, [pct]);
   return (
     <div style={{ marginTop: 18 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#475569", fontFamily: "var(--mono)", marginBottom: 6 }}>
-        <span>0%</span><span style={{ color: hex, fontWeight: 500 }}>{pct.toFixed(1)}%</span><span>100%</span>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--ink-soft)", fontFamily: "var(--mono)", marginBottom: 7 }}>
+        <span>0</span><span style={{ color: ink, fontWeight: 600 }}>{pct.toFixed(1)}%</span><span>100</span>
       </div>
-      <div style={{ position: "relative", height: 5, background: "#111c2e", borderRadius: 999, overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg,#22c55e,#f59e0b 45%,#f97316 68%,#ef4444)", opacity: 0.15 }} />
-        <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: `${w}%`, background: hex, borderRadius: 999, boxShadow: `0 0 10px ${hex}99`, transition: "width .9s cubic-bezier(.23,1,.32,1)" }} />
+      <div style={{ position: "relative", height: 14, background: "var(--paper)", border: "1px solid var(--rule)" }}>
+        {[25, 50, 75].map((m) => (
+          <div key={m} style={{ position: "absolute", left: `${m}%`, top: 0, bottom: 0, width: 1, background: "var(--rule)" }} />
+        ))}
+        <div style={{ position: "absolute", top: 1, left: 1, bottom: 1, width: `calc(${w}% - 2px)`, background: ink, transition: "width .9s cubic-bezier(.23,1,.32,1)" }} />
       </div>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "#1e3a5f", fontFamily: "var(--mono)", marginTop: 4, letterSpacing: "0.05em" }}>
-        <span>LOW</span><span>MEDIUM</span><span>HIGH</span><span>CRITICAL</span>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "var(--ink-faint)", fontFamily: "var(--mono)", marginTop: 4, letterSpacing: "0.08em" }}>
+        <span>CLEARED</span><span>REVIEW</span><span>FLAGGED</span><span>BLOCKED</span>
       </div>
     </div>
   );
@@ -71,9 +108,9 @@ function Gauge({ probability }) {
 
 function Pill({ label, value, accent }) {
   return (
-    <div style={{ flex: 1, background: "#050d19", borderRadius: 10, padding: "11px 12px", textAlign: "center", borderTop: `2px solid ${accent || "#1e3a5f"}` }}>
-      <div style={{ fontSize: 9, color: "#334155", letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "var(--mono)", marginBottom: 5 }}>{label}</div>
-      <div style={{ fontSize: 19, fontWeight: 700, color: accent || "#e2e8f0", fontFamily: "var(--display)", letterSpacing: "-0.02em" }}>{value}</div>
+    <div style={{ flex: 1, background: "var(--paper2)", padding: "11px 12px", textAlign: "center", borderTop: `3px solid ${accent || "var(--rule)"}` }}>
+      <div style={{ fontSize: 9, color: "var(--ink-faint)", letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "var(--mono)", marginBottom: 5 }}>{label}</div>
+      <div style={{ fontSize: 19, fontWeight: 700, color: accent || "var(--ink)", fontFamily: "var(--serif)", letterSpacing: "-0.01em" }}>{value}</div>
     </div>
   );
 }
@@ -81,12 +118,12 @@ function Pill({ label, value, accent }) {
 function Field({ label, hint, ...props }) {
   const [focus, setFocus] = useState(false);
   return (
-    <div style={{ marginBottom: 14 }}>
-      <label style={{ display: "block", fontSize: 10, color: "#334155", letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "var(--mono)", marginBottom: 6 }}>{label}</label>
+    <div style={{ marginBottom: 16 }}>
+      <label style={{ display: "block", fontSize: 10, color: "var(--ink-soft)", letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "var(--mono)", marginBottom: 6 }}>{label}</label>
       <input {...props} onFocus={() => setFocus(true)} onBlur={() => setFocus(false)}
-        style={{ width: "100%", background: "#030810", border: `1px solid ${focus ? "#2563eb" : "#111c2e"}`, borderRadius: 9, padding: "11px 13px", color: "#e2e8f0", fontSize: 14, fontFamily: "var(--mono)", outline: "none", transition: "border-color .18s, box-shadow .18s", boxShadow: focus ? "0 0 0 3px #2563eb14" : "none" }}
+        style={{ width: "100%", background: "transparent", border: "none", borderBottom: `1.5px solid ${focus ? "var(--ink)" : "var(--rule)"}`, borderRadius: 0, padding: "8px 2px", color: "var(--ink)", fontSize: 14, fontFamily: "var(--mono)", outline: "none", transition: "border-color .18s" }}
       />
-      {hint && <div style={{ fontSize: 10, color: "#1e3a5f", marginTop: 5, fontFamily: "var(--mono)", lineHeight: 1.5 }}>{hint}</div>}
+      {hint && <div style={{ fontSize: 10, color: "var(--ink-faint)", marginTop: 5, fontFamily: "var(--mono)", lineHeight: 1.5 }}>{hint}</div>}
     </div>
   );
 }
@@ -95,33 +132,48 @@ const TT = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   return (
-    <div style={{ background: "#080f1c", border: "1px solid #111c2e", borderRadius: 8, padding: "9px 13px", fontSize: 11, fontFamily: "var(--mono)", boxShadow: "0 8px 32px #00000080" }}>
-      <div style={{ color: "#cbd5e1", fontWeight: 500, marginBottom: 3 }}>{d.feature}</div>
-      <div style={{ color: d.impact > 0 ? "#f87171" : "#4ade80" }}>{d.impact > 0 ? "+" : ""}{d.impact.toFixed(4)}</div>
-      <div style={{ color: "#334155", marginTop: 2, fontSize: 10 }}>{d.type === "rule" ? "business rule" : "ml signal"}</div>
+    <div style={{ background: "var(--paper2)", border: "1px solid var(--rule)", padding: "9px 13px", fontSize: 11, fontFamily: "var(--mono)", boxShadow: "3px 3px 0 var(--rule)" }}>
+      <div style={{ color: "var(--ink)", fontWeight: 500, marginBottom: 3 }}>{d.feature}</div>
+      <div style={{ color: d.impact > 0 ? "var(--red)" : "var(--green)" }}>{d.impact > 0 ? "+" : ""}{d.impact.toFixed(4)}</div>
+      <div style={{ color: "var(--ink-faint)", marginTop: 2, fontSize: 10 }}>{d.type === "rule" ? "business rule" : "ml signal"}</div>
     </div>
   );
 };
 
 const Trigger = ({ text }) => (
-  <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#110500", border: "1px solid #f9731618", borderLeft: "3px solid #f97316", borderRadius: 8, padding: "9px 14px", fontSize: 12, color: "#fdba74", fontFamily: "var(--mono)" }}>
-    <span style={{ color: "#f97316", fontSize: 9 }}>◆</span>{text}
+  <div style={{ display: "flex", alignItems: "center", gap: 10, background: "var(--orange-bg)", borderLeft: "3px solid var(--orange)", padding: "9px 14px", fontSize: 12, color: "var(--ink)", fontFamily: "var(--mono)" }}>
+    <span style={{ color: "var(--orange)", fontSize: 11 }}>◇</span>{text}
   </div>
 );
 
 const ExCard = ({ feature, impact, type }) => {
   const up = impact > 0;
   return (
-    <div style={{ display: "flex", alignItems: "flex-start", gap: 9, background: up ? "#0f0200" : "#000f05", border: `1px solid ${up ? "#ef444418" : "#22c55e18"}`, borderRadius: 9, padding: "9px 13px" }}>
-      <span style={{ color: up ? "#f87171" : "#4ade80", fontSize: 11, marginTop: 1, flexShrink: 0 }}>{up ? "▲" : "▼"}</span>
-      <div style={{ fontFamily: "var(--mono)", fontSize: 11, lineHeight: 1.5 }}>
-        <span style={{ color: up ? "#fca5a5" : "#86efac", fontWeight: 500 }}>{feature}</span>
-        <span style={{ color: "#334155", marginLeft: 7 }}>{up ? "increasing risk" : "reducing risk"}</span>
-        {type === "rule" && <span style={{ marginLeft: 7, fontSize: 9, background: "#111c2e", color: "#475569", padding: "1px 5px", borderRadius: 3 }}>rule</span>}
+    <div style={{ display: "flex", alignItems: "flex-start", gap: 9, background: "var(--paper2)", borderLeft: `3px solid ${up ? "var(--red)" : "var(--green)"}`, padding: "9px 13px" }}>
+      <span style={{ color: up ? "var(--red)" : "var(--green)", fontSize: 11, marginTop: 2, flexShrink: 0, fontFamily: "var(--mono)" }}>{up ? "+" : "−"}</span>
+      <div style={{ fontSize: 11, lineHeight: 1.5 }}>
+        <span style={{ color: "var(--ink)", fontWeight: 600, fontFamily: "var(--mono)" }}>{feature}</span>
+        <span style={{ color: "var(--ink-soft)", marginLeft: 7, fontFamily: "var(--serif)", fontStyle: "italic" }}>{up ? "raised the risk" : "lowered the risk"}</span>
+        {type === "rule" && <span style={{ marginLeft: 7, fontSize: 9, background: "var(--paper3)", color: "var(--ink-soft)", padding: "1px 5px" }}>rule</span>}
       </div>
     </div>
   );
 };
+
+function StampVerdict({ tier }) {
+  const r = RISK[tier];
+  return (
+    <div style={{ display: "inline-block", transform: "rotate(-4deg)", animation: "stampIn .5s cubic-bezier(.2,1.4,.4,1)" }}>
+      <div style={{
+        border: `3px solid ${r.ink}`, color: r.ink, fontFamily: "var(--serif)", fontWeight: 800,
+        fontSize: 26, letterSpacing: "0.08em", padding: "6px 20px", textTransform: "uppercase",
+        boxShadow: `0 0 0 1px ${r.ink} inset`, position: "relative",
+      }}>
+        <span style={{ marginRight: 10 }}>{r.symbol}</span>{r.verdict}
+      </div>
+    </div>
+  );
+}
 
 const API_URL = "https://fraud-backend-wsgp.onrender.com";
 
@@ -147,10 +199,11 @@ export default function App() {
   const [ruleExpls, setRuleExpls] = useState([]);
   const [loading, setLoading]     = useState(false);
   const [ready, setReady]         = useState(false);
+  const [caseNo]                  = useState(() => `FG-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`);
 
   useEffect(() => { setTimeout(() => setReady(true), 80); }, []);
 
-  if (!token) return <><FontLoader /><AuthPage onLogin={handleLogin} /></>;
+  if (!token) return <><FontLoader /><GlobalStyle /><AuthPage onLogin={handleLogin} /></>;
 
   const loadSample = (type) => {
     if (type === "normal") { setAmount("450"); setTime("14"); setTxns("3"); setIntl(false); }
@@ -160,7 +213,7 @@ export default function App() {
 
   const authHeaders = {
     "Content-Type": "application/json",
-    "Authorization": `Bearer ${token}`,   
+    "Authorization": `Bearer ${token}`,
   };
 
   const analyze = async () => {
@@ -190,57 +243,55 @@ export default function App() {
   return (
     <>
       <FontLoader />
-      <style>{`
-        :root { --mono:"DM Mono",monospace; --display:"Syne",sans-serif; }
-        *{box-sizing:border-box;margin:0;padding:0}
-        body{background:#030810}
-        input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
-        @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
-        @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-      `}</style>
+      <GlobalStyle />
 
-      <div style={{ minHeight: "100vh", background: "#030810", color: "#e2e8f0", fontFamily: "var(--mono)", opacity: ready ? 1 : 0, transition: "opacity .4s" }}>
+      <div style={{ minHeight: "100vh", color: "var(--ink)", fontFamily: "var(--mono)", opacity: ready ? 1 : 0, transition: "opacity .4s" }}>
 
         {/* HEADER */}
-        <header style={{ borderBottom: "1px solid #0a1628", height: 58, padding: "0 28px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: "#03081099", backdropFilter: "blur(12px)", zIndex: 50 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-            <div style={{ width: 30, height: 30, borderRadius: 7, background: "linear-gradient(135deg,#1e40af,#6d28d9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15 }}>🛡</div>
+        <header style={{ borderBottom: "1px solid var(--rule)", padding: "16px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: "var(--paper)", zIndex: 50 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
+            <div style={{ width: 38, height: 38, borderRadius: "50%", border: "2px solid var(--ink)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontFamily: "var(--serif)", fontWeight: 800, color: "var(--ink)", flexShrink: 0 }}>FG</div>
             <div>
-              <div style={{ fontFamily: "var(--display)", fontWeight: 700, fontSize: 14, letterSpacing: "-.01em", color: "#f1f5f9" }}>FraudGuard AI</div>
-              <div style={{ fontSize: 9, color: "#1e3a5f", letterSpacing: ".08em" }}>REAL-TIME TRANSACTION RISK ENGINE</div>
+              <div style={{ fontFamily: "var(--serif)", fontWeight: 700, fontSize: 17, letterSpacing: "-.01em", color: "var(--ink)" }}>FraudGuard</div>
+              <div style={{ fontSize: 9, color: "var(--ink-soft)", letterSpacing: ".1em" }}>CASE INTAKE &amp; RISK ASSESSMENT DESK</div>
             </div>
           </div>
 
-          {/* Right side — status + user + logout */}
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 10, color: "#1e3a5f", letterSpacing: ".05em" }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 6px #22c55e", display: "inline-block", animation: "blink 2.2s infinite" }} />
-              SYSTEM ONLINE
+          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+            <div style={{ fontSize: 10, color: "var(--ink-soft)", letterSpacing: ".05em", borderRight: "1px solid var(--rule)", paddingRight: 18 }}>
+              FILE {caseNo}
             </div>
-            <div style={{ fontSize: 10, color: "#334155" }}>{email}</div>
+            <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>{email}</div>
             <button onClick={handleLogout}
-              style={{ background: "transparent", border: "1px solid #1e3a5f", borderRadius: 7, padding: "5px 12px", color: "#475569", fontSize: 10, fontFamily: "var(--mono)", cursor: "pointer", letterSpacing: ".05em", transition: "all .15s" }}
-              onMouseEnter={(e) => { e.target.style.borderColor = "#ef4444"; e.target.style.color = "#f87171"; }}
-              onMouseLeave={(e) => { e.target.style.borderColor = "#1e3a5f"; e.target.style.color = "#475569"; }}>
-              LOGOUT
+              style={{ background: "transparent", border: "1px solid var(--ink)", padding: "6px 13px", color: "var(--ink)", fontSize: 10, fontFamily: "var(--mono)", cursor: "pointer", letterSpacing: ".05em", transition: "all .15s" }}
+              onMouseEnter={(e) => { e.target.style.background = "var(--ink)"; e.target.style.color = "var(--paper2)"; }}
+              onMouseLeave={(e) => { e.target.style.background = "transparent"; e.target.style.color = "var(--ink)"; }}>
+              Sign out
             </button>
           </div>
         </header>
 
         <main style={{ maxWidth: 1080, margin: "0 auto", padding: "36px 22px" }}>
 
-          {/* TAB NAV */}
-          <div style={{ display: "flex", gap: 4, marginBottom: 28, background: "#060d1a", border: "1px solid #0a1628", borderRadius: 11, padding: 4, width: "fit-content" }}>
+          {/* TAB NAV — folder tabs */}
+          <div style={{ display: "flex", gap: 0, marginBottom: 0, width: "fit-content" }}>
             {[
-              { key: "analyze", label: "◎  Analyze" },
-              { key: "history", label: "▤  History" },
+              { key: "analyze", label: "Transaction Intake" },
+              { key: "history", label: "Ledger" },
             ].map(({ key, label }) => (
               <button key={key} onClick={() => setTab(key)}
-                style={{ padding: "8px 18px", borderRadius: 8, border: "none", background: tab === key ? "#0f1e30" : "transparent", color: tab === key ? "#e2e8f0" : "#334155", fontSize: 11, fontFamily: "var(--mono)", cursor: "pointer", letterSpacing: ".05em", transition: "all .15s" }}>
+                style={{
+                  padding: "10px 22px", border: "1px solid var(--rule)", borderBottom: tab === key ? "1px solid var(--paper2)" : "1px solid var(--rule)",
+                  background: tab === key ? "var(--paper2)" : "var(--paper3)", color: tab === key ? "var(--ink)" : "var(--ink-soft)",
+                  fontSize: 11, fontFamily: "var(--serif)", fontWeight: 600, cursor: "pointer", letterSpacing: ".02em",
+                  marginBottom: -1, position: "relative", zIndex: tab === key ? 2 : 1, transition: "all .15s",
+                }}>
                 {label}
               </button>
             ))}
           </div>
+
+          <div style={{ border: "1px solid var(--rule)", background: "var(--paper2)", padding: 22, marginBottom: 0 }}>
 
           {/* HISTORY TAB */}
           {tab === "history" && <HistoryPage token={token} />}
@@ -249,15 +300,15 @@ export default function App() {
           {tab === "analyze" && (
             <>
               {/* SAMPLE ROW */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 26 }}>
-                <span style={{ fontSize: 9, color: "#1e3a5f", letterSpacing: ".1em" }}>QUICK TEST</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22 }}>
+                <span style={{ fontSize: 9, color: "var(--ink-soft)", letterSpacing: ".1em" }}>QUICK TEST CASE</span>
                 {[
-                  { key: "normal",     label: "● Normal",     color: "#22c55e" },
-                  { key: "suspicious", label: "■ Suspicious", color: "#ef4444" },
+                  { key: "normal",     label: "Ordinary spend", color: "var(--green)" },
+                  { key: "suspicious", label: "Suspicious spend", color: "var(--red)" },
                 ].map(({ key, label, color }) => (
                   <button key={key} onClick={() => loadSample(key)}
-                    style={{ background: "transparent", border: `1px solid ${color}30`, borderRadius: 999, padding: "5px 13px", color, fontSize: 10, fontFamily: "var(--mono)", cursor: "pointer", letterSpacing: ".03em", transition: "background .15s" }}
-                    onMouseEnter={(e) => { e.target.style.background = `${color}12`; }}
+                    style={{ background: "transparent", border: `1px solid ${color}`, padding: "5px 13px", color, fontSize: 10, fontFamily: "var(--mono)", cursor: "pointer", letterSpacing: ".02em", transition: "background .15s" }}
+                    onMouseEnter={(e) => { e.target.style.background = `${color}1a`; }}
                     onMouseLeave={(e) => { e.target.style.background = "transparent"; }}>
                     {label}
                   </button>
@@ -265,58 +316,63 @@ export default function App() {
               </div>
 
               {/* TWO-COLUMN GRID */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0, border: "1px solid var(--rule)" }}>
 
                 {/* INPUT */}
-                <div style={{ background: "#060d1a", border: "1px solid #0a1628", borderRadius: 15, padding: "26px 24px" }}>
+                <div style={{ background: "var(--paper2)", borderRight: "1px solid var(--rule)", padding: "26px 24px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22 }}>
-                    <span style={{ fontSize: 9, color: "#1e3a5f", letterSpacing: ".12em", textTransform: "uppercase" }}>Transaction Details</span>
-                    <div style={{ flex: 1, height: 1, background: "#0a1628" }} />
+                    <span style={{ fontSize: 9, color: "var(--ink-soft)", letterSpacing: ".12em", textTransform: "uppercase" }}>Transaction Details</span>
+                    <div style={{ flex: 1, height: 1, background: "var(--rule)" }} />
                   </div>
                   <Field label="Transaction Amount (₹)" hint="Amounts above ₹5,000 activate higher-risk checks" type="number" placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} />
                   <Field label="Hour of Day  (0–23)" hint="0 = midnight · 14 = 2 PM · late night raises suspicion" type="number" placeholder="14" min="0" max="23" value={time} onChange={(e) => setTime(e.target.value)} />
                   <Field label="Transactions in Last Hour" hint="Frequency above 10/hr signals card testing behaviour" type="number" placeholder="5" value={txns} onChange={(e) => setTxns(e.target.value)} />
 
                   <div onClick={() => setIntl(!intl)}
-                    style={{ display: "flex", alignItems: "center", gap: 12, background: "#030810", border: `1px solid ${intl ? "#2563eb40" : "#0a1628"}`, borderRadius: 9, padding: "11px 13px", cursor: "pointer", marginBottom: 18, transition: "border-color .15s" }}>
-                    <div style={{ width: 15, height: 15, borderRadius: 4, border: `1.5px solid ${intl ? "#3b82f6" : "#1e3a5f"}`, background: intl ? "#3b82f6" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all .15s", fontSize: 10, color: "#fff" }}>
+                    style={{ display: "flex", alignItems: "center", gap: 12, border: "1px solid var(--rule)", padding: "11px 13px", cursor: "pointer", marginBottom: 20, transition: "border-color .15s" }}>
+                    <div style={{ width: 15, height: 15, border: `1.5px solid var(--ink)`, background: intl ? "var(--ink)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all .15s", fontSize: 10, color: "var(--paper2)" }}>
                       {intl && "✓"}
                     </div>
                     <div>
-                      <div style={{ fontSize: 12, color: "#cbd5e1" }}>International Transaction</div>
-                      <div style={{ fontSize: 10, color: "#1e3a5f", marginTop: 2 }}>Cross-border payments carry additional risk weighting</div>
+                      <div style={{ fontSize: 12, color: "var(--ink)" }}>International Transaction</div>
+                      <div style={{ fontSize: 10, color: "var(--ink-faint)", marginTop: 2 }}>Cross-border payments carry additional risk weighting</div>
                     </div>
                   </div>
 
                   <button onClick={analyze} disabled={loading}
-                    style={{ width: "100%", padding: "13px", borderRadius: 11, border: "none", background: loading ? "#0a1628" : "linear-gradient(135deg,#1d4ed8,#6d28d9)", color: loading ? "#334155" : "#fff", fontSize: 12, fontWeight: 600, fontFamily: "var(--display)", letterSpacing: ".04em", cursor: loading ? "not-allowed" : "pointer", transition: "all .2s", boxShadow: loading ? "none" : "0 4px 20px #1d4ed828" }}>
-                    {loading ? "ANALYZING  ···" : "ANALYZE TRANSACTION"}
+                    style={{
+                      width: "100%", padding: "13px", border: "none",
+                      background: loading ? "var(--paper3)" : "var(--ink)", color: loading ? "var(--ink-faint)" : "var(--paper2)",
+                      fontSize: 12, fontWeight: 700, fontFamily: "var(--serif)", letterSpacing: ".03em", textTransform: "uppercase",
+                      cursor: loading ? "not-allowed" : "pointer", transition: "all .15s",
+                      boxShadow: loading ? "none" : "4px 4px 0 var(--rule)",
+                    }}
+                    onMouseDown={(e) => { if (!loading) e.target.style.boxShadow = "1px 1px 0 var(--rule)"; }}
+                    onMouseUp={(e) => { if (!loading) e.target.style.boxShadow = "4px 4px 0 var(--rule)"; }}>
+                    {loading ? "Reviewing case ···" : "Assess Transaction"}
                   </button>
                 </div>
 
                 {/* RESULT */}
-                <div style={{ background: rc ? rc.bg : "#060d1a", border: `1px solid ${rc ? rc.hex + "25" : "#0a1628"}`, borderRadius: 15, padding: "26px 24px", transition: "all .4s" }}>
+                <div style={{ background: rc ? rc.bg : "var(--paper2)", padding: "26px 24px", transition: "all .4s" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22 }}>
-                    <span style={{ fontSize: 9, color: "#1e3a5f", letterSpacing: ".12em", textTransform: "uppercase" }}>Risk Analysis</span>
-                    <div style={{ flex: 1, height: 1, background: rc ? rc.hex + "20" : "#0a1628" }} />
+                    <span style={{ fontSize: 9, color: "var(--ink-soft)", letterSpacing: ".12em", textTransform: "uppercase" }}>Risk Assessment</span>
+                    <div style={{ flex: 1, height: 1, background: "var(--rule)" }} />
                   </div>
 
                   {result ? (
                     <div style={{ animation: "fadeUp .35s ease" }}>
-                      <div style={{ fontFamily: "var(--display)", fontWeight: 800, fontSize: 30, color: rc.hex, letterSpacing: "-.03em", display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-                        <span style={{ filter: `drop-shadow(0 0 8px ${rc.hex}88)` }}>{rc.symbol}</span>
-                        {rc.label}
-                      </div>
-                      <div style={{ fontSize: 9, color: "#334155", letterSpacing: ".1em" }}>FRAUD PROBABILITY SCORE</div>
+                      <StampVerdict tier={tier} />
+                      <div style={{ fontSize: 9, color: "var(--ink-soft)", letterSpacing: ".1em", marginTop: 16 }}>FRAUD PROBABILITY SCORE</div>
                       <Gauge probability={result.probability} />
                       <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-                        <Pill label="Final Score" value={<AnimatedPct value={result.probability * 100} />} accent={rc.hex} />
-                        <Pill label="ML Score"    value={`${(result.ml_score * 100).toFixed(1)}%`}        accent="#3b82f6" />
-                        <Pill label="Rule Boost"  value={`+${(result.rule_boost * 100).toFixed(1)}%`}     accent="#7c3aed" />
+                        <Pill label="Final Score" value={<AnimatedPct value={result.probability * 100} />} accent={rc.ink} />
+                        <Pill label="ML Score"    value={`${(result.ml_score * 100).toFixed(1)}%`}    accent="var(--ink-soft)" />
+                        <Pill label="Rule Boost"  value={`+${(result.rule_boost * 100).toFixed(1)}%`} accent="var(--ink-soft)" />
                       </div>
                       {ruleExpls.length > 0 && (
                         <div style={{ marginTop: 20 }}>
-                          <div style={{ fontSize: 9, color: "#334155", letterSpacing: ".1em", marginBottom: 8 }}>RISK TRIGGERS DETECTED</div>
+                          <div style={{ fontSize: 9, color: "var(--ink-soft)", letterSpacing: ".1em", marginBottom: 8 }}>RISK TRIGGERS DETECTED</div>
                           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                             {ruleExpls.map((r, i) => <Trigger key={i} text={r.feature} />)}
                           </div>
@@ -324,10 +380,10 @@ export default function App() {
                       )}
                     </div>
                   ) : (
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 190, textAlign: "center" }}>
-                      <div style={{ fontSize: 34, opacity: .12, marginBottom: 12 }}>◎</div>
-                      <div style={{ fontSize: 11, color: "#0a1628" }}>Enter details and click Analyze</div>
-                      <div style={{ fontSize: 10, color: "#070e1b", marginTop: 3 }}>or choose a quick test above</div>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 220, textAlign: "center" }}>
+                      <div style={{ fontSize: 34, opacity: .25, marginBottom: 12, fontFamily: "var(--serif)", color: "var(--ink-faint)" }}>—</div>
+                      <div style={{ fontSize: 11, color: "var(--ink-faint)" }}>Fill in the form and assess the transaction</div>
+                      <div style={{ fontSize: 10, color: "var(--ink-faint)", marginTop: 3 }}>or pick a quick test case above</div>
                     </div>
                   )}
                 </div>
@@ -335,25 +391,25 @@ export default function App() {
 
               {/* SHAP CHART */}
               {expls.length > 0 && (
-                <div style={{ background: "#060d1a", border: "1px solid #0a1628", borderRadius: 15, padding: "26px 24px", marginTop: 18, animation: "fadeUp .4s .1s both" }}>
+                <div style={{ background: "var(--paper2)", border: "1px solid var(--rule)", padding: "26px 24px", marginTop: 18, animation: "fadeUp .4s .1s both" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 }}>
                     <div>
-                      <div style={{ fontSize: 9, color: "#1e3a5f", letterSpacing: ".12em", textTransform: "uppercase", marginBottom: 4 }}>Feature Impact  ·  SHAP + Business Rules</div>
-                      <div style={{ fontSize: 10, color: "#0f1e30" }}>Sorted by absolute contribution magnitude</div>
+                      <div style={{ fontSize: 9, color: "var(--ink-soft)", letterSpacing: ".12em", textTransform: "uppercase", marginBottom: 4 }}>Feature Impact · SHAP + Business Rules</div>
+                      <div style={{ fontSize: 10, color: "var(--ink-faint)" }}>Sorted by absolute contribution magnitude</div>
                     </div>
-                    <div style={{ display: "flex", gap: 14, fontSize: 10, color: "#334155" }}>
-                      <span style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 7, height: 7, borderRadius: 2, background: "#ef4444", display: "inline-block" }} /> RISK</span>
-                      <span style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 7, height: 7, borderRadius: 2, background: "#22c55e", display: "inline-block" }} /> SAFE</span>
+                    <div style={{ display: "flex", gap: 14, fontSize: 10, color: "var(--ink-soft)" }}>
+                      <span style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 7, height: 7, background: "var(--red)", display: "inline-block" }} /> RISK</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 7, height: 7, background: "var(--green)", display: "inline-block" }} /> SAFE</span>
                     </div>
                   </div>
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={chart} layout="vertical" margin={{ left: 145, right: 20, top: 2, bottom: 2 }}>
-                      <XAxis type="number" stroke="#0a1628" tick={{ fontSize: 9, fill: "#1e3a5f", fontFamily: "var(--mono)" }} axisLine={{ stroke: "#0a1628" }} tickLine={false} />
-                      <YAxis type="category" dataKey="feature" width={138} tick={{ fontSize: 10, fill: "#64748b", fontFamily: "var(--mono)" }} axisLine={false} tickLine={false} />
-                      <Tooltip content={<TT />} cursor={{ fill: "#ffffff03" }} />
-                      <ReferenceLine x={0} stroke="#111c2e" strokeWidth={1} />
-                      <Bar dataKey="impact" radius={[0, 4, 4, 0]} maxBarSize={20}>
-                        {chart.map((e, i) => <Cell key={i} fill={e.impact > 0 ? "#ef4444" : "#22c55e"} fillOpacity={0.88} />)}
+                      <XAxis type="number" stroke="var(--rule)" tick={{ fontSize: 9, fill: "var(--ink-faint)", fontFamily: "var(--mono)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
+                      <YAxis type="category" dataKey="feature" width={138} tick={{ fontSize: 10, fill: "var(--ink-soft)", fontFamily: "var(--mono)" }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<TT />} cursor={{ fill: "rgba(35,32,26,0.04)" }} />
+                      <ReferenceLine x={0} stroke="var(--rule)" strokeWidth={1} />
+                      <Bar dataKey="impact" radius={[0, 0, 0, 0]} maxBarSize={18}>
+                        {chart.map((e, i) => <Cell key={i} fill={e.impact > 0 ? "#8A2424" : "#33522F"} fillOpacity={0.85} />)}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
@@ -362,19 +418,20 @@ export default function App() {
 
               {/* AI EXPLANATION */}
               {expls.length > 0 && (
-                <div style={{ background: "#060d1a", border: "1px solid #0a1628", borderRadius: 15, padding: "26px 24px", marginTop: 18, animation: "fadeUp .4s .2s both" }}>
-                  <div style={{ fontSize: 9, color: "#1e3a5f", letterSpacing: ".12em", textTransform: "uppercase", marginBottom: 16 }}>AI Decision Explanation</div>
+                <div style={{ background: "var(--paper2)", border: "1px solid var(--rule)", padding: "26px 24px", marginTop: 18, animation: "fadeUp .4s .2s both" }}>
+                  <div style={{ fontSize: 9, color: "var(--ink-soft)", letterSpacing: ".12em", textTransform: "uppercase", marginBottom: 16 }}>Assessor's Notes</div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
                     {expls.filter((e) => Math.abs(e.impact) > 0.01).slice(0, 8).map((e, i) => <ExCard key={i} {...e} />)}
                   </div>
                 </div>
               )}
 
-              <div style={{ marginTop: 28, textAlign: "center", fontSize: 9, color: "#070e1b", letterSpacing: ".06em" }}>
-                FRAUDGUARD AI · ENSEMBLE ML + BUSINESS RULES · DEMONSTRATION BUILD
+              <div style={{ marginTop: 28, textAlign: "center", fontSize: 9, color: "var(--ink-faint)", letterSpacing: ".06em" }}>
+                FRAUDGUARD · ENSEMBLE ML + BUSINESS RULES · DEMONSTRATION BUILD
               </div>
             </>
           )}
+          </div>
         </main>
       </div>
     </>
