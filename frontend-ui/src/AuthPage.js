@@ -2,6 +2,19 @@ import React, { useState } from "react";
 
 const API_URL = "https://fraud-backend-wsgp.onrender.com";
 
+function extractErrorMessage(data) {
+  const detail = data?.detail;
+  if (!detail) return "Something went wrong.";
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    return detail
+      .map((d) => (typeof d === "string" ? d : d?.msg))
+      .filter(Boolean)
+      .join(" · ") || "Something went wrong.";
+  }
+  return "Something went wrong.";
+}
+
 export default function AuthPage({ onLogin }) {
   const [mode, setMode]       = useState("login");
   const [email, setEmail]     = useState("");
@@ -28,7 +41,7 @@ export default function AuthPage({ onLogin }) {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.detail || "Something went wrong.");
+        setError(extractErrorMessage(data));
       } else {
         localStorage.setItem("fg_token", data.access_token);
         localStorage.setItem("fg_email", email);
