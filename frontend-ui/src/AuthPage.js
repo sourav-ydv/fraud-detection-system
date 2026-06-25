@@ -43,25 +43,44 @@ export default function AuthPage({ onLogin }) {
   const onKey = (e) => { if (e.key === "Enter") submit(); };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#030810", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: '"DM Mono", monospace', padding: 20 }}>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--mono)", padding: 20, color: "var(--ink)" }}>
       <div style={{ width: "100%", maxWidth: 420 }}>
 
-        <div style={{ textAlign: "center", marginBottom: 40 }}>
-          <div style={{ width: 52, height: 52, borderRadius: 14, background: "linear-gradient(135deg,#1e40af,#6d28d9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, margin: "0 auto 16px" }}>🛡</div>
-          <div style={{ fontFamily: '"Syne", sans-serif', fontWeight: 800, fontSize: 22, color: "#f1f5f9", letterSpacing: "-.02em" }}>FraudGuard AI</div>
-          <div style={{ fontSize: 10, color: "#1e3a5f", letterSpacing: ".1em", marginTop: 4 }}>REAL-TIME TRANSACTION RISK ENGINE</div>
+        {/* letterhead */}
+        <div style={{ textAlign: "center", marginBottom: 36 }}>
+          <div style={{
+            width: 54, height: 54, borderRadius: "50%", border: "2px solid var(--ink)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 17, fontFamily: "var(--serif)", fontWeight: 800, color: "var(--ink)",
+            margin: "0 auto 16px",
+          }}>FG</div>
+          <div style={{ fontFamily: "var(--serif)", fontWeight: 700, fontSize: 22, color: "var(--ink)", letterSpacing: "-.01em" }}>FraudGuard</div>
+          <div style={{ fontSize: 10, color: "var(--ink-soft)", letterSpacing: ".1em", marginTop: 4 }}>ANALYST ACCESS · CASE INTAKE DESK</div>
         </div>
 
-        <div style={{ background: "#060d1a", border: "1px solid #0a1628", borderRadius: 16, padding: "32px 28px" }}>
+        {/* folder tabs */}
+        <div style={{ display: "flex", width: "fit-content", margin: "0 auto" }}>
+          {[
+            { key: "login",    label: "Sign In" },
+            { key: "register", label: "Register" },
+          ].map(({ key, label }) => (
+            <button key={key} onClick={() => { setMode(key); setError(""); }}
+              style={{
+                padding: "9px 24px", border: "1px solid var(--rule)",
+                borderBottom: mode === key ? "1px solid var(--paper2)" : "1px solid var(--rule)",
+                background: mode === key ? "var(--paper2)" : "var(--paper3)",
+                color: mode === key ? "var(--ink)" : "var(--ink-soft)",
+                fontSize: 11, fontFamily: "var(--serif)", fontWeight: 600, cursor: "pointer",
+                letterSpacing: ".02em", marginBottom: -1, position: "relative",
+                zIndex: mode === key ? 2 : 1, transition: "all .15s",
+              }}>
+              {label}
+            </button>
+          ))}
+        </div>
 
-          <div style={{ display: "flex", background: "#030810", borderRadius: 10, padding: 4, marginBottom: 28 }}>
-            {["login", "register"].map((m) => (
-              <button key={m} onClick={() => { setMode(m); setError(""); }}
-                style={{ flex: 1, padding: "9px", borderRadius: 7, border: "none", background: mode === m ? "#0f1e30" : "transparent", color: mode === m ? "#e2e8f0" : "#334155", fontSize: 11, fontFamily: '"DM Mono", monospace', cursor: "pointer", letterSpacing: ".06em", textTransform: "uppercase", transition: "all .15s" }}>
-                {m}
-              </button>
-            ))}
-          </div>
+        {/* the form card itself, attached under the tabs */}
+        <div style={{ background: "var(--paper2)", border: "1px solid var(--rule)", padding: "30px 28px" }}>
 
           {mode === "register" && (
             <AuthField label="Full Name" type="text" placeholder="Sourav Yadav" value={name} onChange={setName} onKey={onKey} />
@@ -70,19 +89,29 @@ export default function AuthPage({ onLogin }) {
           <AuthField label="Password" type="password" placeholder="••••••••" value={password} onChange={setPass} onKey={onKey} />
 
           {error && (
-            <div style={{ background: "#1a0000", border: "1px solid #ef444430", borderRadius: 8, padding: "10px 13px", fontSize: 11, color: "#f87171", marginBottom: 16 }}>
+            <div style={{ background: "var(--red-bg)", borderLeft: "3px solid var(--red)", padding: "10px 13px", fontSize: 11, color: "var(--red)", marginBottom: 16 }}>
               {error}
             </div>
           )}
 
           <button onClick={submit} disabled={loading}
-            style={{ width: "100%", padding: "13px", borderRadius: 11, border: "none", background: loading ? "#0a1628" : "linear-gradient(135deg,#1d4ed8,#6d28d9)", color: loading ? "#334155" : "#fff", fontSize: 12, fontWeight: 600, fontFamily: '"Syne", sans-serif', letterSpacing: ".04em", cursor: loading ? "not-allowed" : "pointer", transition: "all .2s", boxShadow: loading ? "none" : "0 4px 20px #1d4ed828", marginTop: 4 }}>
-            {loading ? "PLEASE WAIT  ···" : mode === "login" ? "LOGIN" : "CREATE ACCOUNT"}
+            style={{
+              width: "100%", padding: "13px", border: "none",
+              background: loading ? "var(--paper3)" : "var(--ink)",
+              color: loading ? "var(--ink-faint)" : "var(--paper2)",
+              fontSize: 12, fontWeight: 700, fontFamily: "var(--serif)", letterSpacing: ".03em",
+              textTransform: "uppercase", cursor: loading ? "not-allowed" : "pointer",
+              transition: "all .15s", boxShadow: loading ? "none" : "4px 4px 0 var(--rule)",
+              marginTop: 4,
+            }}
+            onMouseDown={(e) => { if (!loading) e.target.style.boxShadow = "1px 1px 0 var(--rule)"; }}
+            onMouseUp={(e) => { if (!loading) e.target.style.boxShadow = "4px 4px 0 var(--rule)"; }}>
+            {loading ? "Please wait ···" : mode === "login" ? "Sign In" : "Create Account"}
           </button>
         </div>
 
-        <div style={{ textAlign: "center", fontSize: 9, color: "#070e1b", letterSpacing: ".06em", marginTop: 24 }}>
-          FRAUDGUARD AI · SECURE AUTHENTICATION
+        <div style={{ textAlign: "center", fontSize: 9, color: "var(--ink-faint)", letterSpacing: ".06em", marginTop: 24 }}>
+          FRAUDGUARD · SECURE AUTHENTICATION
         </div>
       </div>
     </div>
@@ -92,8 +121,8 @@ export default function AuthPage({ onLogin }) {
 function AuthField({ label, type, placeholder, value, onChange, onKey }) {
   const [focus, setFocus] = useState(false);
   return (
-    <div style={{ marginBottom: 14 }}>
-      <label style={{ display: "block", fontSize: 10, color: "#334155", letterSpacing: ".1em", textTransform: "uppercase", marginBottom: 6 }}>{label}</label>
+    <div style={{ marginBottom: 16 }}>
+      <label style={{ display: "block", fontSize: 10, color: "var(--ink-soft)", letterSpacing: ".1em", textTransform: "uppercase", fontFamily: "var(--mono)", marginBottom: 6 }}>{label}</label>
       <input
         type={type}
         placeholder={placeholder}
@@ -102,7 +131,12 @@ function AuthField({ label, type, placeholder, value, onChange, onKey }) {
         onKeyDown={onKey}
         onFocus={() => setFocus(true)}
         onBlur={() => setFocus(false)}
-        style={{ width: "100%", background: "#030810", border: `1px solid ${focus ? "#2563eb" : "#111c2e"}`, borderRadius: 9, padding: "11px 13px", color: "#e2e8f0", fontSize: 14, fontFamily: '"DM Mono", monospace', outline: "none", transition: "border-color .18s, box-shadow .18s", boxShadow: focus ? "0 0 0 3px #2563eb14" : "none" }}
+        style={{
+          width: "100%", background: "transparent", border: "none",
+          borderBottom: `1.5px solid ${focus ? "var(--ink)" : "var(--rule)"}`,
+          padding: "8px 2px", color: "var(--ink)", fontSize: 14, fontFamily: "var(--mono)",
+          outline: "none", transition: "border-color .18s",
+        }}
       />
     </div>
   );
