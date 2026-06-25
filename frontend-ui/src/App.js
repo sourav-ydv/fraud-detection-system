@@ -51,6 +51,18 @@ const GlobalStyle = () => (
   `}</style>
 );
 
+function useIsMobile(breakpoint = 720) {
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.innerWidth <= breakpoint
+  );
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= breakpoint);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 const RISK = {
   LOW:      { label: "Cleared",      verdict: "CLEARED",  symbol: "✓", ink: "var(--green)",  bg: "var(--green-bg)"  },
   MEDIUM:   { label: "Needs Review", verdict: "REVIEW",   symbol: "△", ink: "var(--amber)",  bg: "var(--amber-bg)"  },
@@ -106,9 +118,9 @@ function Gauge({ probability }) {
   );
 }
 
-function Pill({ label, value, accent }) {
+function Pill({ label, value, accent, mobile }) {
   return (
-    <div style={{ flex: 1, background: "var(--paper2)", padding: "11px 12px", textAlign: "center", borderTop: `3px solid ${accent || "var(--rule)"}` }}>
+    <div style={{ flex: 1, minWidth: mobile ? 100 : 0, background: "var(--paper2)", padding: "11px 12px", textAlign: "center", borderTop: `3px solid ${accent || "var(--rule)"}` }}>
       <div style={{ fontSize: 9, color: "var(--ink-faint)", letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "var(--mono)", marginBottom: 5 }}>{label}</div>
       <div style={{ fontSize: 19, fontWeight: 700, color: accent || "var(--ink)", fontFamily: "var(--serif)", letterSpacing: "-0.01em" }}>{value}</div>
     </div>
@@ -181,6 +193,7 @@ export default function App() {
   const [token, setToken]   = useState(() => localStorage.getItem("fg_token") || "");
   const [email, setEmail]   = useState(() => localStorage.getItem("fg_email") || "");
   const [tab, setTab]       = useState("analyze"); // "analyze" | "history"
+  const isMobile             = useIsMobile();
 
   const handleLogin = (t, e) => { setToken(t); setEmail(e); };
   const handleLogout = () => {
@@ -248,7 +261,12 @@ export default function App() {
       <div style={{ minHeight: "100vh", color: "var(--ink)", fontFamily: "var(--mono)", opacity: ready ? 1 : 0, transition: "opacity .4s" }}>
 
         {/* HEADER */}
-        <header style={{ borderBottom: "1px solid var(--rule)", padding: "16px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: "var(--paper)", zIndex: 50 }}>
+        <header style={{
+          borderBottom: "1px solid var(--rule)", padding: isMobile ? "12px 16px" : "16px 28px",
+          display: "flex", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between",
+          flexDirection: isMobile ? "column" : "row", gap: isMobile ? 10 : 0,
+          position: "sticky", top: 0, background: "var(--paper)", zIndex: 50,
+        }}>
           <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
             <div style={{ width: 38, height: 38, borderRadius: "50%", border: "2px solid var(--ink)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontFamily: "var(--serif)", fontWeight: 800, color: "var(--ink)", flexShrink: 0 }}>FG</div>
             <div>
@@ -257,13 +275,15 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-            <div style={{ fontSize: 10, color: "var(--ink-soft)", letterSpacing: ".05em", borderRight: "1px solid var(--rule)", paddingRight: 18 }}>
-              FILE {caseNo}
-            </div>
-            <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>{email}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 12 : 18, width: isMobile ? "100%" : "auto", justifyContent: isMobile ? "space-between" : "flex-start", paddingLeft: isMobile ? 51 : 0 }}>
+            {!isMobile && (
+              <div style={{ fontSize: 10, color: "var(--ink-soft)", letterSpacing: ".05em", borderRight: "1px solid var(--rule)", paddingRight: 18 }}>
+                FILE {caseNo}
+              </div>
+            )}
+            <div style={{ fontSize: 10, color: "var(--ink-soft)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{email}</div>
             <button onClick={handleLogout}
-              style={{ background: "transparent", border: "1px solid var(--ink)", padding: "6px 13px", color: "var(--ink)", fontSize: 10, fontFamily: "var(--mono)", cursor: "pointer", letterSpacing: ".05em", transition: "all .15s" }}
+              style={{ background: "transparent", border: "1px solid var(--ink)", padding: "6px 13px", color: "var(--ink)", fontSize: 10, fontFamily: "var(--mono)", cursor: "pointer", letterSpacing: ".05em", transition: "all .15s", flexShrink: 0 }}
               onMouseEnter={(e) => { e.target.style.background = "var(--ink)"; e.target.style.color = "var(--paper2)"; }}
               onMouseLeave={(e) => { e.target.style.background = "transparent"; e.target.style.color = "var(--ink)"; }}>
               Sign out
@@ -271,7 +291,7 @@ export default function App() {
           </div>
         </header>
 
-        <main style={{ maxWidth: 1080, margin: "0 auto", padding: "36px 22px" }}>
+        <main style={{ maxWidth: 1080, margin: "0 auto", padding: isMobile ? "20px 12px" : "36px 22px" }}>
 
           {/* TAB NAV — folder tabs */}
           <div style={{ display: "flex", gap: 0, marginBottom: 0, width: "fit-content" }}>
@@ -281,7 +301,7 @@ export default function App() {
             ].map(({ key, label }) => (
               <button key={key} onClick={() => setTab(key)}
                 style={{
-                  padding: "10px 22px", border: "1px solid var(--rule)", borderBottom: tab === key ? "1px solid var(--paper2)" : "1px solid var(--rule)",
+                  padding: isMobile ? "9px 14px" : "10px 22px", border: "1px solid var(--rule)", borderBottom: tab === key ? "1px solid var(--paper2)" : "1px solid var(--rule)",
                   background: tab === key ? "var(--paper2)" : "var(--paper3)", color: tab === key ? "var(--ink)" : "var(--ink-soft)",
                   fontSize: 11, fontFamily: "var(--serif)", fontWeight: 600, cursor: "pointer", letterSpacing: ".02em",
                   marginBottom: -1, position: "relative", zIndex: tab === key ? 2 : 1, transition: "all .15s",
@@ -291,7 +311,7 @@ export default function App() {
             ))}
           </div>
 
-          <div style={{ border: "1px solid var(--rule)", background: "var(--paper2)", padding: 22, marginBottom: 0 }}>
+          <div style={{ border: "1px solid var(--rule)", background: "var(--paper2)", padding: isMobile ? 14 : 22, marginBottom: 0 }}>
 
           {/* HISTORY TAB */}
           {tab === "history" && <HistoryPage token={token} />}
@@ -300,7 +320,7 @@ export default function App() {
           {tab === "analyze" && (
             <>
               {/* SAMPLE ROW */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22, flexWrap: "wrap" }}>
                 <span style={{ fontSize: 9, color: "var(--ink-soft)", letterSpacing: ".1em" }}>QUICK TEST CASE</span>
                 {[
                   { key: "normal",     label: "Ordinary spend", color: "var(--green)" },
@@ -315,11 +335,11 @@ export default function App() {
                 ))}
               </div>
 
-              {/* TWO-COLUMN GRID */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0, border: "1px solid var(--rule)" }}>
+              {/* TWO-COLUMN GRID — stacks to one column on mobile */}
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 0, border: "1px solid var(--rule)" }}>
 
                 {/* INPUT */}
-                <div style={{ background: "var(--paper2)", borderRight: "1px solid var(--rule)", padding: "26px 24px" }}>
+                <div style={{ background: "var(--paper2)", borderRight: isMobile ? "none" : "1px solid var(--rule)", borderBottom: isMobile ? "1px solid var(--rule)" : "none", padding: isMobile ? "20px 16px" : "26px 24px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22 }}>
                     <span style={{ fontSize: 9, color: "var(--ink-soft)", letterSpacing: ".12em", textTransform: "uppercase" }}>Transaction Details</span>
                     <div style={{ flex: 1, height: 1, background: "var(--rule)" }} />
@@ -354,7 +374,7 @@ export default function App() {
                 </div>
 
                 {/* RESULT */}
-                <div style={{ background: rc ? rc.bg : "var(--paper2)", padding: "26px 24px", transition: "all .4s" }}>
+                <div style={{ background: rc ? rc.bg : "var(--paper2)", padding: isMobile ? "20px 16px" : "26px 24px", transition: "all .4s" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22 }}>
                     <span style={{ fontSize: 9, color: "var(--ink-soft)", letterSpacing: ".12em", textTransform: "uppercase" }}>Risk Assessment</span>
                     <div style={{ flex: 1, height: 1, background: "var(--rule)" }} />
@@ -365,10 +385,10 @@ export default function App() {
                       <StampVerdict tier={tier} />
                       <div style={{ fontSize: 9, color: "var(--ink-soft)", letterSpacing: ".1em", marginTop: 16 }}>FRAUD PROBABILITY SCORE</div>
                       <Gauge probability={result.probability} />
-                      <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-                        <Pill label="Final Score" value={<AnimatedPct value={result.probability * 100} />} accent={rc.ink} />
-                        <Pill label="ML Score"    value={`${(result.ml_score * 100).toFixed(1)}%`}    accent="var(--ink-soft)" />
-                        <Pill label="Rule Boost"  value={`+${(result.rule_boost * 100).toFixed(1)}%`} accent="var(--ink-soft)" />
+                      <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
+                        <Pill label="Final Score" value={<AnimatedPct value={result.probability * 100} />} accent={rc.ink} mobile={isMobile} />
+                        <Pill label="ML Score"    value={`${(result.ml_score * 100).toFixed(1)}%`}    accent="var(--ink-soft)" mobile={isMobile} />
+                        <Pill label="Rule Boost"  value={`+${(result.rule_boost * 100).toFixed(1)}%`} accent="var(--ink-soft)" mobile={isMobile} />
                       </div>
                       {ruleExpls.length > 0 && (
                         <div style={{ marginTop: 20 }}>
@@ -391,8 +411,8 @@ export default function App() {
 
               {/* SHAP CHART */}
               {expls.length > 0 && (
-                <div style={{ background: "var(--paper2)", border: "1px solid var(--rule)", padding: "26px 24px", marginTop: 18, animation: "fadeUp .4s .1s both" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 }}>
+                <div style={{ background: "var(--paper2)", border: "1px solid var(--rule)", padding: isMobile ? "18px 14px" : "26px 24px", marginTop: 18, animation: "fadeUp .4s .1s both" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18, flexWrap: "wrap", gap: 8 }}>
                     <div>
                       <div style={{ fontSize: 9, color: "var(--ink-soft)", letterSpacing: ".12em", textTransform: "uppercase", marginBottom: 4 }}>Feature Impact · SHAP + Business Rules</div>
                       <div style={{ fontSize: 10, color: "var(--ink-faint)" }}>Sorted by absolute contribution magnitude</div>
@@ -402,10 +422,16 @@ export default function App() {
                       <span style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 7, height: 7, background: "var(--green)", display: "inline-block" }} /> SAFE</span>
                     </div>
                   </div>
-                  <ResponsiveContainer width="100%" height={260}>
-                    <BarChart data={chart} layout="vertical" margin={{ left: 145, right: 20, top: 2, bottom: 2 }}>
+                  <ResponsiveContainer width="100%" height={isMobile ? 230 : 260}>
+                    <BarChart data={chart} layout="vertical" margin={isMobile ? { left: 8, right: 12, top: 2, bottom: 2 } : { left: 145, right: 20, top: 2, bottom: 2 }}>
                       <XAxis type="number" stroke="var(--rule)" tick={{ fontSize: 9, fill: "var(--ink-faint)", fontFamily: "var(--mono)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
-                      <YAxis type="category" dataKey="feature" width={138} tick={{ fontSize: 10, fill: "var(--ink-soft)", fontFamily: "var(--mono)" }} axisLine={false} tickLine={false} />
+                      <YAxis
+                        type="category" dataKey="feature"
+                        width={isMobile ? 78 : 138}
+                        tick={{ fontSize: isMobile ? 9 : 10, fill: "var(--ink-soft)", fontFamily: "var(--mono)" }}
+                        axisLine={false} tickLine={false}
+                        tickFormatter={(v) => (isMobile && v.length > 11 ? v.slice(0, 10) + "…" : v)}
+                      />
                       <Tooltip content={<TT />} cursor={{ fill: "rgba(35,32,26,0.04)" }} />
                       <ReferenceLine x={0} stroke="var(--rule)" strokeWidth={1} />
                       <Bar dataKey="impact" radius={[0, 0, 0, 0]} maxBarSize={18}>
@@ -418,9 +444,9 @@ export default function App() {
 
               {/* AI EXPLANATION */}
               {expls.length > 0 && (
-                <div style={{ background: "var(--paper2)", border: "1px solid var(--rule)", padding: "26px 24px", marginTop: 18, animation: "fadeUp .4s .2s both" }}>
+                <div style={{ background: "var(--paper2)", border: "1px solid var(--rule)", padding: isMobile ? "18px 14px" : "26px 24px", marginTop: 18, animation: "fadeUp .4s .2s both" }}>
                   <div style={{ fontSize: 9, color: "var(--ink-soft)", letterSpacing: ".12em", textTransform: "uppercase", marginBottom: 16 }}>Assessor's Notes</div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 7 }}>
                     {expls.filter((e) => Math.abs(e.impact) > 0.01).slice(0, 8).map((e, i) => <ExCard key={i} {...e} />)}
                   </div>
                 </div>
