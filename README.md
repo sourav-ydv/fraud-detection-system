@@ -1,4 +1,4 @@
-# 🛡️ FraudGuard AI — Real-Time Fraud Detection System
+#  FraudGuard AI — Real-Time Fraud Detection System
 
 A full-stack AI system for real-time transaction fraud detection with JWT authentication, per-user risk profiling, SHAP explainability, and a hybrid ML + rule-based engine.
 
@@ -7,7 +7,7 @@ A full-stack AI system for real-time transaction fraud detection with JWT authen
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
 ```
 frontend-ui/          ← React app (Vercel)
@@ -27,7 +27,7 @@ notebooks/
 
 ---
 
-## ✨ Features
+##  Features
 
 - **JWT Authentication** — Secure register/login with bcrypt password hashing
 - **Per-User Risk Profiles** — Dynamic fraud thresholds that adapt to each user's transaction history
@@ -40,7 +40,7 @@ notebooks/
 
 ---
 
-## 🤖 ML Pipeline
+##  ML Pipeline
 
 **Dataset:** [Kaggle Credit Card Fraud Detection](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud) — 284,807 transactions, 0.17% fraud rate
 
@@ -70,20 +70,20 @@ notebooks/
 
 ---
 
-## 🔌 API Endpoints
+##  API Endpoints
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| POST | `/auth/register` | ❌ | Register new user, returns JWT |
-| POST | `/auth/login` | ❌ | Login, returns JWT |
-| GET | `/auth/me` | ✅ | Get logged-in user profile |
-| POST | `/predict` | ✅ | Predict fraud probability |
-| POST | `/explain` | ✅ | Get SHAP + rule explanations |
-| GET | `/history` | ✅ | Get last 20 predictions |
+| POST | `/auth/register` | No | Register new user, returns JWT |
+| POST | `/auth/login` | No | Login, returns JWT |
+| GET | `/auth/me` | Yes | Get logged-in user profile |
+| POST | `/predict` | Yes | Predict fraud probability |
+| POST | `/explain` | Yes | Get SHAP + rule explanations |
+| GET | `/history` | Yes | Get last 20 predictions |
 
 ---
 
-## 🚀 Local Setup
+##  Local Setup
 
 ### Prerequisites
 - Python 3.11
@@ -137,7 +137,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 ---
 
-## 🧠 Model Performance
+##  Model Performance
 
 | Model | AUC-ROC | Notes |
 |---|---|---|
@@ -150,7 +150,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -163,13 +163,13 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 ---
 
-## 📁 Dataset
+##  Dataset
 
 The model is trained on the [Credit Card Fraud Detection](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud) dataset from Kaggle (ULB). Due to size (144MB), `data/creditcard.csv` is not included in this repo. Download it from Kaggle and place it in the `data/` folder before running the training notebook.
 
 ---
 
-## 🗺️ Roadmap
+##  Roadmap
 
 - [x] Ensemble ML model (XGBoost + RF + MLP)
 - [x] SHAP explainability
@@ -182,6 +182,6 @@ The model is trained on the [Credit Card Fraud Detection](https://www.kaggle.com
 
 ---
 
-## 👤 Author
+##  Author
 
 **Sourav Yadav** — [linkedin.com/in/souravydv22](https://linkedin.com/in/souravydv22) · [github.com/sourav-ydv](https://github.com/sourav-ydv)
